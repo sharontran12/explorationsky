@@ -16,6 +16,4 @@ TorusKnotGeometry: https://threejs.org/docs/index.html#api/en/geometries/TorusKn
 
 Human body: https://free3d.com/3d-model/base-mesh-ready-to-be-rigged-15483.html 
 
-Sculpted by: https://free3d.com/3d-model/base-mesh-ready-to-be-rigged-15483.html 
-
 Button: https://www.bestcssbuttongenerator.com/#/21 
