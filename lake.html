@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>ExplorationSky</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="stylesheet" rel="stylesheet" href="style.css">
+		<style>
+			body {
+				background-color: #ccc;
+				color: #000;
+			}
+			a {
+				color: #f00;
+			}
+		</style>
+	</head>
+
+	<body>
+<!-- 		<div id="info">
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - trackball controls<br />
+			MOVE mouse &amp; press LEFT/A: rotate, MIDDLE/S: zoom, RIGHT/D: pan
+		</div> -->
+
+		<script type="module">
+
+			import * as THREE from '../build/three.module.js';
+
+			import Stats from './build/stats.module.js';
+			import { GUI } from './build/lil-gui.module.min.js';
+      
+      import { GLTFLoader } from "./src/GLTFLoader.js";
+
+			import { TrackballControls } from './src/TrackballControls.js';
+
+      //trackball control
+			let perspectiveCamera, orthographicCamera, controls, scene, renderer, stats;
+      let container;
+			let camera;
+      let mesh, mesh2;
+
+    
+
+      
+
+			const params = {
+				orthographicCamera: false
+			};
+
+			const frustumSize = 400;
+
+			init();
+			animate();
+      
+
+ 
+  const loader = new GLTFLoader().load(
+			  "https://cdn.glitch.me/0aaa8784-db9a-4869-b198-d89aaf9bbeae%2Fislandtree.glb?v=1639373134110",
+			  
+			  function(gltf) {
+          
+			    // Scan loaded model for mesh and apply defined material if mesh is present
+			    gltf.scene.traverse(function(child) {
+			      if (child.isMesh) {
+			        //child.material = newMaterial;
+			      }
+			    });
+			    // set position and scale
+          
+			    mesh = gltf.scene;
+			    mesh.position.set(10, 0, -85);
+			    mesh.rotation.set(0, 0, 0);
+			    mesh.scale.set(10, 10, 10); 
+			    // // Add model to scene
+			    scene.add(mesh);
+			  },
+			  undefined,
+			  function(error) {
+			    console.error(error);
+			  }
+			); 
+      
+     
+      const loader2 = new GLTFLoader().load(
+				"https://cdn.glitch.me/0aaa8784-db9a-4869-b198-d89aaf9bbeae%2Fhumann.glb?v=1639380744952",
+				function(gltf) {
+					// Scan loaded model for mesh and apply defined material if mesh is present
+
+					// set position and scale
+					mesh2 = gltf.scene;
+					mesh2.position.set(50, 30, 10);
+					mesh2.rotation.set(0, 0, 0);
+					mesh2.scale.set(10, 10, 10);
+					// Add model to scene
+					scene.add(mesh2);
+
+				},
+				undefined,
+				function(error) {
+					console.error(error);
+				}
+			);
+      
+      
+      
+      
+      
+    
+
+			function init() {
+
+				const aspect = window.innerWidth / window.innerHeight;
+
+				perspectiveCamera = new THREE.PerspectiveCamera( 60, aspect, 1, 1000 );
+				perspectiveCamera.position.z = 500;
+
+				orthographicCamera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
+				orthographicCamera.position.z = 500;
+
+				// world
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color(0x000000);
+				scene.fog = new THREE.FogExp2( 0xFFFACD, 0.002 );
+
+        const geometry = new THREE.TorusKnotGeometry( 5, 20, 10, 5 );
+				const material = new THREE.MeshPhongMaterial( { color: 0xF5F5F5, flatShading: true } );
+
+				for ( let i = 0; i < 500; i ++ ) {
+
+					const mesh = new THREE.Mesh( geometry, material );
+					mesh.position.x = ( Math.random() - 0.5 ) * 1000;
+					mesh.position.y = ( Math.random() - 0.5 ) * 1000;
+					mesh.position.z = ( Math.random() - 0.5 ) * 1000;
+					mesh.updateMatrix();
+					mesh.matrixAutoUpdate = false;
+					scene.add( mesh );
+          
+       
+				}
+        
+        
+
+        
+        
+
+				// lights
+      
+
+				const dirLight1 = new THREE.DirectionalLight( 0xDAA520 );
+				dirLight1.position.set( 1, 1, 1 );
+				scene.add( dirLight1 );
+
+				const dirLight2 = new THREE.DirectionalLight( 0x66CDAA );
+				dirLight2.position.set( - 1, - 1, - 1 );
+				scene.add( dirLight2 );
+
+				const ambientLight = new THREE.AmbientLight(  0x4169E1 );
+				scene.add( ambientLight );
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				document.body.appendChild( stats.dom );
+
+				//
+        
+        
+
+				const gui = new GUI();
+				gui.add( params, 'orthographicCamera' ).name( 'use orthographic' ).onChange( function ( value ) {
+
+					controls.dispose();
+
+					createControls( value ? orthographicCamera : perspectiveCamera );
+
+				} );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize );
+
+				createControls( perspectiveCamera );
+
+			}
+      
+  //sky    
+     
+      
+      
+      
+      
+      
+      
+
+			function createControls( camera ) {
+
+				controls = new TrackballControls( camera, renderer.domElement );
+
+				controls.rotateSpeed = 1.0;
+				controls.zoomSpeed = 1.2;
+				controls.panSpeed = 0.8;
+
+				controls.keys = [ 'KeyA', 'KeyS', 'KeyD' ];
+
+			}
+
+			function onWindowResize() {
+
+				const aspect = window.innerWidth / window.innerHeight;
+
+				perspectiveCamera.aspect = aspect;
+				perspectiveCamera.updateProjectionMatrix();
+
+				orthographicCamera.left = - frustumSize * aspect / 2;
+				orthographicCamera.right = frustumSize * aspect / 2;
+				orthographicCamera.top = frustumSize / 2;
+				orthographicCamera.bottom = - frustumSize / 2;
+				orthographicCamera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				controls.handleResize();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				controls.update();
+
+				stats.update();
+
+				render();
+
+			}
+
+			function render() {
+
+				const camera = ( params.orthographicCamera ) ? orthographicCamera : perspectiveCamera;
+
+				renderer.render( scene, camera );
+
+			}
+
+
+		</script>
+
+	</body>
+</html>
